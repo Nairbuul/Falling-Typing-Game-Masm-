@@ -52,8 +52,11 @@ main PROC
 		mov ebx, OFFSET text
 		mov edx, textSize
 		add ebx, edx
-		cmp al, 1
-		je here
+		mov edx, edi
+		add edx, 2
+		add edx, [textSize]
+		cmp al, [edx]
+		jne here
 			mov [ebx], al
 			inc [textSize]
 		here:

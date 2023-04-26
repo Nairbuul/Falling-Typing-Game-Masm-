@@ -5,54 +5,63 @@ INCLUDE Macros.inc
 
 ;Task List 
 ;Process string 
-;   - initialize string with size, and 4 thingies after
+;   - initialize string with size, and 4 thingy ma bobbs after
 ;   - also generate with random x values
 ;Multiple strings drop
 ;   - probably gona have a function that prints all the strings...
 ;Score
-;   - two variables # of key strokes            CHECK
-;   -               # of correct key strokes    CHECK
-;                   add them together div       USE CH8 PARAMETER 
-;                   have constant score show on top left... 
-;   - Health 
-;       o To alter health change o to x 111 to 119
+;   - two variables # of key strokes                                ;Done
+;   -               # of correct key strokes                        ;Done
+;                   add them together div use ch8 parameter
+;                   have constant score show on top left...         ;Done
+
+;Parameters
+x_param EQU [ebp + 8]
+y_param EQU [ebp + 12]
 
 .data
-	; define your variables here
-
-    score BYTE "SCORE: ",0
-    score2 DWORD 123
-    Health BYTE "Health [o][o][o]", 0
+    ; define your variables here
+    
+    ;Score variables
+    ;==================================
+    HealthText BYTE "Health: ", 0
+    Health BYTE 33h
+    
     NumberOfKeyStrokes DWORD 0
     CorrectKeyStrokes  DWORD 0
+    ScoreText BYTE "Score: ", 0
+    Accuracy DWORD 0
+    ;==================================
 
-	loopCounter BYTE 0
-	textSize DWORD 0
-	text BYTE 40 DUP(?)
+	loopCounter BYTE 0             ;Variable to count amount of loop before decrementing string
+	textSize DWORD 0               ;Variable that prints over string
+	text BYTE 40 DUP(?)            ;Variable that prints over string
 
-	marker DWORD 0
+	marker DWORD 0                 ;Word location
 
 	line BYTE 0,11,0, "Hello World", 0,50,1,0,
-			  0,13,0, "GoodBye World", 0,15,1,0,
-			  0,12,0, "Poker Nights", 0,30,1,0,
-              0,10,0, "aaaaaaAaAb",0,54,1,0,
-			  0,27,0,"Superfragilistic Alidocious",0,102,1,0
+			 0,13,0, "GoodBye World", 0,15,1,0,
+		      0,12,0, "Poker Nights", 0,30,1,0,
+                0,10,0, "aaaaaaAaAb",0,54,1,0,
+			 0,27,0,"Superfragilistic Alidocious",0,100,1,0
 .code
 
 main PROC
 	inputs:
-        ;======SCORE UI==============================================
+        ;Score UI
+        ;==================================
+        call clrscr
         mov eax, white
-        call setTextColor
-        mov edx, OFFSET score
+        call settextcolor
+        mov edx, OFFSET ScoreText
         call WriteString
-
-        mov eax, [score2]
+        mov eax, [CorrectKeyStrokes]
         call WriteInt
-
-        mGoToXY 120, 0
-        mWriteString OFFSET Health
-        ;===========================================================
+        mGoToXY 122 , 0
+        mWriteString OFFSET HealthText
+        mov al, [Health]
+        call WriteChar
+        ;;==================================
 
         inc [loopCounter]                       ;Decremneting string counter...
         mov al, [loopCounter]
@@ -128,11 +137,7 @@ main PROC
         here:
 
         call clrscr
-
-        push OFFSET NumberOfKeyStrokes 
-        push OFFSET CorrectKeyStrokes  
-        call get Average
-
+        
         cmp al, 27d                                                 ;If escape key we leave
         jne inputs
         je EndOfInput
@@ -146,11 +151,26 @@ main PROC
     INVOKE ExitProcess, 0
 main ENDP
 
-getAverage PROC
-    
+;-------------------------------------------------------------------------------------
+;Procedure to calculate the accuracy.
+;-------------------------------------------------------------------------------------
+getAccuracy PROC
+    cmp [NumberOfKeyStrokes], 0
+    je zero
+    cmp [CorrectKeyStrokes],0 
+    je zero
 
+    mov edx, 0 
+    mov eax, [NumberOfKeyStrokes]
+    mov ebx, 100
+    mul ebx
+    mov ebx, [CorrectKeyStrokes]
+    div ebx
+    mov accuracy, eax
+        
+    zero:
     ret
-getAverage ENDP
+getAccuracy ENDP
 
 ;-------------------------------------------------------------------------------------
 ;Procedure to clear the text variable that overwrites the string.

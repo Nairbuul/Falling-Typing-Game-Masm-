@@ -5,7 +5,7 @@ INCLUDE Macros.inc
 
 .data
     ; define your variables here
-    line BYTE 0,11,0,"Hello World",0,50,0,0
+    line BYTE 0,27,0,"Superfragilistic Alidocious",0,50,0,0
     line2 BYTE 0,13,0, "Goodbye World", 0, 10,0,0
     textSize DWORD 0
     text BYTE 20 DUP (?)
@@ -19,7 +19,7 @@ main PROC
         inc [loopCounter]                      ;Decremnet counter...
         mov al, [loopCounter]
         cmp al, 10
-        jge decrement
+        je decrement
 
         mov esi, OFFSET line                  ;[esi] Start of variable string
         mov edi, esi
@@ -54,7 +54,7 @@ main PROC
     ;-------------------------------
     ;COMMENT 
     ;inputs
-    ;need a way to make sure it matches the string.
+    ;removing character when fully matched...
     ;-------------------------------
         call readKey
         mov ebx, OFFSET text
@@ -72,23 +72,28 @@ main PROC
             jb here
                 ;clear variable / get next Variable???
                 call clearVariable
-                mov BYTE PTR [(edi+2)], 0
+                mov BYTE PTR [(edi+2)], 0                           ;Maybe find a new method...
         here:
 
         call clrscr
         
         cmp al, 27d                    ;If escape key we leave
         jne inputs
-        je EndOfProgram
+        je EndOfInput
 
     Decrement: 
          mov [loopCounter], 0
-        inc BYTE PTR [esi+1]
+        inc BYTE PTR [(esi+1)]
         jmp inputs
 
-    EndOfProgram:
+    EndOfInput:
     INVOKE ExitProcess, 0
 main ENDP
+
+keyStroke PROC
+
+    ret
+keyStroke ENDP
 
 clearVariable PROC
     push esi

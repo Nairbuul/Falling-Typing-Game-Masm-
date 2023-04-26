@@ -12,7 +12,7 @@ INCLUDE Macros.inc
 ;Score
 ;   - two variables # of key strokes            CHECK
 ;   -               # of correct key strokes    CHECK
-;                   add them together div       
+;                   add them together div       USE CH8 PARAMETER 
 ;                   have constant score show on top left... 
 ;   - Health 
 ;       o To alter health change o to x 111 to 119
@@ -128,7 +128,11 @@ main PROC
         here:
 
         call clrscr
-        
+
+        push OFFSET NumberOfKeyStrokes 
+        push OFFSET CorrectKeyStrokes  
+        call get Average
+
         cmp al, 27d                                                 ;If escape key we leave
         jne inputs
         je EndOfInput
@@ -141,6 +145,12 @@ main PROC
     EndOfInput:
     INVOKE ExitProcess, 0
 main ENDP
+
+getAverage PROC
+    
+
+    ret
+getAverage ENDP
 
 ;-------------------------------------------------------------------------------------
 ;Procedure to clear the text variable that overwrites the string.

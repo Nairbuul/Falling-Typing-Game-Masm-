@@ -5,19 +5,24 @@ INCLUDE Macros.inc
 
 ;Task List 
 ;Process string 
-;   - initialize string with size, and 4 thingy ma bobbs after
+;   - initialize string with size, and 4 thingies after
 ;   - also generate with random x values
 ;Multiple strings drop
 ;   - probably gona have a function that prints all the strings...
 ;Score
-;   - two variables # of key strokes
-;   -               # of correct key strokes 
-;                   add them together div
+;   - two variables # of key strokes            CHECK
+;   -               # of correct key strokes    CHECK
+;                   add them together div       
 ;                   have constant score show on top left... 
+;   - Health 
+;       o To alter health change o to x 111 to 119
 
 .data
 	; define your variables here
 
+    score BYTE "SCORE: ",0
+    score2 DWORD 123
+    Health BYTE "Health [o][o][o]", 0
     NumberOfKeyStrokes DWORD 0
     CorrectKeyStrokes  DWORD 0
 
@@ -27,15 +32,28 @@ INCLUDE Macros.inc
 
 	marker DWORD 0
 
-	line BYTE 0,11,0, "Hello World", 0,50,0,0,
-			  0,13,0, "GoodBye World", 0,15,0,0,
-			  0,12,0, "Poker Nights", 0,30,0,0,
-              0,10,0, "aaaaaaAaAb",0,54,0,0,
-			  0,27,0,"Superfragilistic Alidocious",0,100,0,0
+	line BYTE 0,11,0, "Hello World", 0,50,1,0,
+			  0,13,0, "GoodBye World", 0,15,1,0,
+			  0,12,0, "Poker Nights", 0,30,1,0,
+              0,10,0, "aaaaaaAaAb",0,54,1,0,
+			  0,27,0,"Superfragilistic Alidocious",0,102,1,0
 .code
 
 main PROC
 	inputs:
+        ;======SCORE UI==============================================
+        mov eax, white
+        call setTextColor
+        mov edx, OFFSET score
+        call WriteString
+
+        mov eax, [score2]
+        call WriteInt
+
+        mGoToXY 120, 0
+        mWriteString OFFSET Health
+        ;===========================================================
+
         inc [loopCounter]                       ;Decremneting string counter...
         mov al, [loopCounter]
         cmp al, 15

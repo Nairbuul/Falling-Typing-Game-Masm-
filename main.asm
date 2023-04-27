@@ -12,8 +12,9 @@ INCLUDE Macros.inc
 ;Score
 ;   - two variables # of key strokes                                ;Done
 ;   -               # of correct key strokes                        ;Done
-;                   add them together div use ch8 parameter
+;                   add them together div use ch8 parameter         ;Done
 ;                   have constant score show on top left...         ;Done
+;   -Health: (When y value reaches a 30) decrement health if health = 0 or F end program...
 
 ;Parameters
 x_param EQU [ebp + 8]
@@ -209,8 +210,10 @@ getAccuracy PROC
     je zero
 
     mov edx, 0 
-    mov eax, [NumberOfKeyStrokes]
-    mov ebx, [CorrectKeyStrokes]
+    mov eax, [CorrectKeyStrokes]
+    mov ebx, 100d
+    mul ebx
+    mov ebx, [NumberOfKeyStrokes]
     div ebx
     mov accuracy, eax
         

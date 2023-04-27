@@ -30,7 +30,9 @@ y_param EQU [ebp + 12]
     NumberOfKeyStrokes DWORD 0
     CorrectKeyStrokes  DWORD 0
     ScoreText BYTE "Score: ", 0
+    AccuracyText BYTE "Accuracy: ",0
     Accuracy DWORD 0
+    AccuracyText2 BYTE "%",0
     ;==================================
 
 	loopCounter BYTE 0             ;Variable to count amount of loop before decrementing string
@@ -39,11 +41,14 @@ y_param EQU [ebp + 12]
 
 	marker DWORD 0                 ;Word location
 
-	line BYTE 0,11,0, "Hello World", 0,50,1,0,
-			 0,13,0, "GoodBye World", 0,15,1,0,
-		      0,12,0, "Poker Nights", 0,30,1,0,
-                0,10,0, "aaaaaaAaAb",0,54,1,0,
-			 0,27,0,"Superfragilistic Alidocious",0,100,1,0
+	line BYTE   0,11,0, "Hello World", 0,50,1,0,
+			    0,13,0, "GoodBye World", 0,15,1,0,
+		        0,12,0, "Poker Nights", 0,30,1,0,
+                0,10,0,"Particular",0,85,1,0,
+			    0,27,0,"Superfragilistic Alidocious",0,100,1,0,
+                0,10,0, "aaaaaaAaAb",0,54,1,0
+    
+    endOfDictionary DWORD $
 .code
 
 main PROC
@@ -57,11 +62,22 @@ main PROC
         call WriteString
         mov eax, [CorrectKeyStrokes]
         call WriteInt
+        ;DEBUG=======
+        mov eax, [NumberOfKeyStrokes]
+        call WriteInt
+        ;============
+        mGoToXY 65, 0
+        mov edx, OFFSET accuracyText
+        call WriteString
+        mov eax, [Accuracy]
+        call WriteInt
+        mov edx, OFFSET accuracyText2
+        call WriteString
         mGoToXY 122 , 0
         mWriteString OFFSET HealthText
         mov al, [Health]
         call WriteChar
-        ;;==================================
+        ;==================================
 
         inc [loopCounter]                       ;Decremneting string counter...
         mov al, [loopCounter]
@@ -96,12 +112,12 @@ main PROC
     ;COMMENT
     ;Overlapping string with color matched inputs
     ;-------------------------------
-        mov eax, lightMagenta
+        mov eax, LightRed
         call setTextColor
         mGoToXY BYTE PTR [esi], BYTE PTR [esi+1]
         mWriteString OFFSET (text)
 
-        mov eax, 10
+        mov eax, 15
         call delay
 
     ;-------------------------------
@@ -110,8 +126,8 @@ main PROC
     ;removing character when fully matched...
     ;-------------------------------
         call readKey
-        test al, 0
-        jnz noInputs
+        cmp al, 1
+        jle noInputs
             inc [NumberOfKeyStrokes]
     noInputs:
         mov ebx, OFFSET text
@@ -128,16 +144,23 @@ main PROC
             mov bl, BYTE PTR [textsize]
             cmp bl, cl
             jb here
-                ;clear variable / get next Variable???
                 call clearVariable
                 mov BYTE PTR [(edi+2)], 0                           ;Maybe find a new method...
+                push eax
                 mov al, [edi]
                 add BYTE PTR [marker], al
                 add [marker], 7
+                pop eax
         here:
-
-        call clrscr
         
+        push eax
+        push ebx
+        push edx
+        call getAccuracy
+        pop edx
+        pop ebx
+        pop eax
+
         cmp al, 27d                                                 ;If escape key we leave
         jne inputs
         je EndOfInput
@@ -148,6 +171,31 @@ main PROC
         jmp inputs
 
     EndOfInput:
+
+        ;End game ui
+        ;===============================================================
+        call clrscr                                             ;Formatting
+        call clrscr                                             ;Formatting
+        mov edx, OFFSET ScoreText                               ;Score
+        mGoToXY 65, 15                                          ;Middle of Screen
+        mov eax, lightGreen                                     ;TextColor
+        call setTextColor                                       ;setting TextColor
+        call WriteString                                        ;Printing Score text
+        mov eax, [CorrectKeyStrokes]                            ;Printing Score value
+        call WriteInt                                           ;Printing Score value
+        mGoToXY 65,16                                           ;Moving to next line
+        mov edx, OFFSET accuracyText                            ;Accuracy text
+        call WriteString                                        ;Printing Accuracy text
+        mov eax, [Accuracy]                                     ;Accuracy value
+        call WriteInt                                           ;Printing Accuracy Value
+        mov edx, OFFSET accuracyText2                           ; % symbol
+        call WriteString                                        ;Printing & symbol
+        mGoToXY 65, 17                                          ;Moving to next line
+        mWriteln "Game Over"                                    ;End Game text
+        call crlf                                               ;Formatting
+        call crlf                                               ;Formatting
+        call crlf                                               ;Formatting
+        ;===============================================================
     INVOKE ExitProcess, 0
 main ENDP
 
@@ -162,8 +210,6 @@ getAccuracy PROC
 
     mov edx, 0 
     mov eax, [NumberOfKeyStrokes]
-    mov ebx, 100
-    mul ebx
     mov ebx, [CorrectKeyStrokes]
     div ebx
     mov accuracy, eax

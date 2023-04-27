@@ -4,6 +4,7 @@ INCLUDE Irvine32.inc
 INCLUDE Macros.inc
 
 ;Task List 
+;Need a way to end the game when all the strings are done processing.
 ;Process string 
 ;   - initialize string with size, and 4 thingy ma bobbs after
 ;   - also generate with random x values
@@ -63,10 +64,10 @@ main PROC
         call WriteString
         mov eax, [CorrectKeyStrokes]
         call WriteInt
-        ;DEBUG=======
-        mov eax, [NumberOfKeyStrokes]
-        call WriteInt
-        ;============
+;DEBUG=======
+mov eax, [NumberOfKeyStrokes]
+call WriteInt
+;============
         mGoToXY 65, 0
         mov edx, OFFSET accuracyText
         call WriteString
@@ -113,7 +114,7 @@ main PROC
     ;COMMENT
     ;Overlapping string with color matched inputs
     ;-------------------------------
-        mov eax, LightRed
+        mov eax, LightGreen
         call setTextColor
         mGoToXY BYTE PTR [esi], BYTE PTR [esi+1]
         mWriteString OFFSET (text)
@@ -154,13 +155,7 @@ main PROC
                 pop eax
         here:
         
-        push eax
-        push ebx
-        push edx
         call getAccuracy
-        pop edx
-        pop ebx
-        pop eax
 
         cmp al, 27d                                                 ;If escape key we leave
         jne inputs

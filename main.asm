@@ -43,8 +43,8 @@ INCLUDE Macros.inc
 
 	marker DWORD 0                 ;Word location
 
-    lava1 BYTE "VvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVvVv",0
-    lava2 BYTE "WwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWwWw",0
+    lava1 BYTE "LAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAV",0
+    lava2 BYTE "LAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAVALAV",0
 
 	line BYTE  0,11,0, "Hello World", 0,50,1,0,
 			 0,13,0, "GoodBye World", 0,15,1,0,
@@ -54,12 +54,12 @@ INCLUDE Macros.inc
                 0,10,0, "aaaaaaAaAb",0,54,1,0
            BYTE 0,5,0,"Budge",0,72,1,0,
                 0,11,0,"acquisition",0,114,1,0,
-                0,6,0, "ComEdy", 0,5,1,0,
-                0,6,0, "LineaR", 0, 32, 1, 0,
+                0,6,0, "Comedy", 0,5,1,0,
+                0,6,0, "Linear", 0, 32, 1, 0,
                 0,11,0, "Grandmother",0, 57, 1,0,
                 0,9,0, "reduction", 0, 92,1, 0
            BYTE 0,9,0, "Clearance", 0, 10,1,0
-
+                            
     
     endOfDictionary DWORD $
 .code
@@ -106,14 +106,13 @@ main PROC
         LavaYellow:
             mov eax,yellow
             call setTextColor
-            mWriteString OFFSET lava1
+            mWriteString OFFSET lava2
         LavaRed:
         ;==================================
 
         inc [loopCounter]                       ;Decremneting string counter...
         mov al, [loopCounter]
-        cmp al, 15
-        ;Make another counter here inc every 3x decrement is called.[
+        cmp al, 5                              ;Change this to alter speed of decrementing string
         je decrement
 
         mov esi, OFFSET line                    ;[esi] Start of variable string
@@ -152,7 +151,7 @@ main PROC
         mGoToXY BYTE PTR [esi], BYTE PTR [esi+1]
         mWriteString OFFSET (text)
 
-        mov eax, 15
+        mov eax, 15                                                 ;Change this to increase game speed.
         call delay
 
     ;-------------------------------
@@ -203,7 +202,7 @@ main PROC
     Decrement: 
         mov [loopCounter], 0
         inc [wordCounterArithmetic]
-        cmp [wordCounterArithmetic], 3
+        cmp [wordCounterArithmetic], 5                              ;Change this to alter the amount of lines dropped before new words appears.
         jne noIncrements
             mov [wordCounterArithmetic],0
             inc[wordCounter]
@@ -245,6 +244,9 @@ main PROC
     INVOKE ExitProcess, 0
 main ENDP
 
+;-------------------------------------------------------------------------------------
+;Procedure that goes through the all the valid strings on screen and decrements them.
+;-------------------------------------------------------------------------------------
 decrementStrings PROC
     movzx ecx, [wordCounter]
 
@@ -273,28 +275,26 @@ decrementStrings PROC
     ret
 decrementStrings ENDP
 
+
+;-------------------------------------------------------------------------------------
+;Procedure to print X amount of words given by the variable wordCounter.
+;-------------------------------------------------------------------------------------
 printAll PROC
     movzx ecx, [wordCounter]
 
-    ;Find a method to only increment word count every x amount of decrements
-    ;movzx eax, [wordCounter]
-    ;mov bl, 5
-    ;div bl
-    ;mov ecx, eax
-
     printLoop:
-        mGoToXY [esi], [esi+1]
-        mov edx, edi
-        add edx,2 
-        call WriteString
-        movzx ebx, BYTE PTR [edi]           ;ebx hold size
+        mGoToXY [esi], [esi+1]              ;ESI is pointing at memoory x location ESI + 1 is pointing at memory that holds y location
+        mov edx, edi                        ;EDI is pointing to the size of the variable [0, [(SIZE)], 0 [(STRING)], 0, [(X)], [(Y)], 0]
+        add edx,2                           ;EDX now points to beginning of the string
+        call WriteString                    ;Printing the string
+        movzx ebx, BYTE PTR [edi]           ;ebx holds size
         add ebx, 7                          ;arithmetic to move to the next string's size
         add edi, ebx                        ;adding size of string and 7 positions to get pass all the info data.
 
         mov esi, edi                        ;setting esi to memory location that holds the x and y value of the string.
-        movzx ebx, BYTE PTR[edi]            
-        add esi, ebx
-        add esi, 3
+        movzx ebx, BYTE PTR[edi]            ;Moving size into ebx
+        add esi, ebx                        ;moving esi to the beginning of the next string
+        add esi, 3                          ;Moving esi pass the size information
     
         mov ebx, OFFSET endOfDictionary     ;End of word list.
         cmp ebx, esi
@@ -305,14 +305,18 @@ printAll PROC
     ret
 printAll ENDP
 
-deleteString PROC
-    call clearVariable
-    mov BYTE PTR [(edi+2)],0
-    push eax
-    mov al, [edi]
-    add BYTE PTR [marker], al
-    add [marker], 7
-    pop eax
+
+;-------------------------------------------------------------------------------------
+;Procedure to null out a string so it doesnt print onto the terminal.
+;-------------------------------------------------------------------------------------
+deleteString PROC                                   
+    call clearVariable                                      ;Clearing the overlapping text variable
+    mov BYTE PTR [(edi+2)],0                                ;Putting a null character at the beginning of the string
+    push eax                                                ;Saving our eax
+    mov al, [edi]                                           ;moving the position of edi into al for arithmetic
+    add BYTE PTR [marker], al                               ;Adding it by the number of correct key strokes
+    add [marker], 7                                         ;Adding 7 because of our "Info bytes"
+    pop eax                                                 ;Restoring eax
     
     ret
 deleteString ENDP
@@ -321,20 +325,20 @@ deleteString ENDP
 ;Procedure to calculate the accuracy.
 ;-------------------------------------------------------------------------------------
 getAccuracy PROC
-    cmp [NumberOfKeyStrokes], 0
+    cmp [NumberOfKeyStrokes], 0                             ;Check to make sure that we're not dividing by zero
     je zero
     cmp [CorrectKeyStrokes],0 
     je zero
 
-    mov edx, 0 
-    mov eax, [CorrectKeyStrokes]
-    mov ebx, 100d
-    mul ebx
-    mov ebx, [NumberOfKeyStrokes]
-    div ebx
-    mov accuracy, eax
+    mov edx, 0                                              ;Clearing upper half of register
+    mov eax, [CorrectKeyStrokes]                            ;Moving the correct key strokes to eax
+    mov ebx, 100d                                           ;Multiplying it by 100
+    mul ebx                                                 
+    mov ebx, [NumberOfKeyStrokes]                           ;Dividing it by the  total number of key stokes
+    div ebx                                             
+    mov accuracy, eax                                       ;Putting result into accuracy
         
-    zero:
+    zero:                                                   ;Marker for when one of the variables is a zero.
     ret
 getAccuracy ENDP
 
